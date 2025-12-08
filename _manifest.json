@@ -1,0 +1,25 @@
+{
+  "manifest_version": 1,
+  "name": "戳一戳插件",
+  "version": "1.0.0",
+  "description": "使麦麦能对被戳做出回应，同时给麦麦增加主动戳别人的能力",
+  "author": {
+    "name": "鲨鱼",
+    "url": "https://github.com/HyperSharkawa"
+  },
+  "license": "MIT",
+  "host_application": {
+    "min_version": "0.11.0"
+  },
+  "homepage_url": "https://github.com/HyperSharkawa/poke_plugin",
+  "repository_url": "https://github.com/HyperSharkawa/poke_plugin",
+  "keywords": [
+    "poke",
+    "interactive"
+  ],
+  "categories": [
+    "Entertainment & Interaction"
+  ],
+  "default_locale": "CN",
+  "locales_path": "_locales"
+}
