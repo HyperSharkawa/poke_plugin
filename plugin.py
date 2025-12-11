@@ -78,7 +78,8 @@ class PokeEventHandler(BaseEventHandler):
                 for reply_seg in data.reply_set.reply_data:
                     send_data = reply_seg.content
                     await self.send_text(message.stream_id, send_data, storage_message=True)
-                    return True, True, f"戳一戳已回复: {send_data}", None, None
+                    logger.info(f"戳一戳已回复: {send_data}")
+                return True, True, f"戳一戳已响应", None, None
         except Exception as e:
             logger.error(f"表达器生成失败: {e}")
 
