@@ -1,4 +1,7 @@
+import json
 import time
+from typing import List, Tuple, Type, Optional
+
 from src.common.logger import get_logger
 from src.config.config import global_config
 from src.plugin_system import (
@@ -12,7 +15,6 @@ from src.plugin_system import (
 from src.plugin_system.apis import generator_api
 from src.plugin_system.apis import person_api, database_api
 from src.plugin_system.base.component_types import ComponentInfo, ActionActivationType
-from typing import List, Tuple, Type, Optional
 
 logger = get_logger("poke_plugin")
 
@@ -33,11 +35,17 @@ class PokeEventHandler(BaseEventHandler):
             return True, True, "非戳一戳消息", None, None
 
         try:
-            import json
             json_message = json.loads(raw_message)
+            if (
+                    not isinstance(json_message, dict)
+                    or json_message.get("post_type") != "notice"
+                    or json_message.get("sub_type") != "poke"
+            ):
+                return True, True, "非戳一戳消息", None, None
+            target_user_id = json_message.get("target_id", None)
+            if str(target_user_id) != global_config.bot.qq_account:
+                return True, True, "戳一戳消息目标不为bot", None, None
         except Exception as e:
-            return True, True, "非戳一戳消息", None, None
-        if json_message.get("post_type") != "notice" or json_message.get("sub_type") != "poke":
             return True, True, "非戳一戳消息", None, None
         user_id: Optional[str] = message.message_base_info.get("user_id", None)
         if not user_id:
@@ -48,12 +56,6 @@ class PokeEventHandler(BaseEventHandler):
         person_name = await person_api.get_person_value(person_id, "person_name")
         if not person_name:
             return False, True, "响应戳一戳失败: 无法获取用户名称", None, None
-
-        target_user_id = json_message.get("target_id", None)
-
-        if str(target_user_id) != global_config.bot.qq_account:
-            return True, True, "戳一戳消息目标不为bot", None, None
-        # logger.info(f"接收到戳一戳消息: {message}")
 
         # 使用表达器生成回复
         try:
