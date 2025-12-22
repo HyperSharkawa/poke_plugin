@@ -1,5 +1,4 @@
-from typing import List, Tuple, Type, Optional
-
+import time
 from src.common.logger import get_logger
 from src.config.config import global_config
 from src.plugin_system import (
@@ -13,6 +12,7 @@ from src.plugin_system import (
 from src.plugin_system.apis import generator_api
 from src.plugin_system.apis import person_api, database_api
 from src.plugin_system.base.component_types import ComponentInfo, ActionActivationType
+from typing import List, Tuple, Type, Optional
 
 logger = get_logger("poke_plugin")
 
@@ -65,6 +65,7 @@ class PokeEventHandler(BaseEventHandler):
                 reply_reason=reply_reason,
                 enable_chinese_typo=False,
                 extra_info=f"{reply_reason}。这是QQ的“戳一戳”功能，用于友好的和某人互动。请针对这个“戳一戳”消息生成一个回复",
+                reply_time_point=time.time()
             )
             flag = await self.send_command(
                 message.stream_id,
