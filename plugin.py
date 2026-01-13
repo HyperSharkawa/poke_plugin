@@ -1,5 +1,6 @@
 import asyncio
 import json
+import random
 import time
 from typing import List, Tuple, Type, Optional
 
@@ -62,18 +63,36 @@ class PokeEventHandler(BaseEventHandler):
         if not person_name:
             return False, True, "响应戳一戳失败: 无法获取用户名称", None, None
 
+        is_poke_back = False
+        poke_back_prompt = ""
+        if enable_poke_back:
+            poke_back_probability = self.get_config("qq_poke_plugin.poke_back_probability", 1.0)
+            if poke_back_probability >= 1.0:
+                is_poke_back = True
+            else:
+                is_poke_back = random.random() < poke_back_probability
+            if is_poke_back:
+                poke_back_prompt = self.get_config("qq_poke_plugin.poke_back_prompt", "")
+                logger.info(f"决定回戳 {person_name} (概率设定: {poke_back_probability})")
+            else:
+                poke_back_prompt = self.get_config("qq_poke_plugin.poke_no_back_prompt", "")
+                logger.info(f"决定不回戳 {person_name} (概率设定: {poke_back_probability})")
         # 使用表达器生成回复
         try:
             reply_reason = person_name + message.plain_text
             logger.info(f"接收到戳一戳消息: {reply_reason}")
             if enable_poke_reply:
                 poke_reply_prompt = self.get_config("qq_poke_plugin.poke_reply_prompt")
+                extra_info = f"{reply_reason}。{poke_reply_prompt}"
+                if poke_back_prompt:
+                    extra_info += f"\n{poke_back_prompt}"
+                logger.debug(f"生成戳一戳回复使用的额外上下文信息: {extra_info}")
                 # 调用表达器生成回复
                 result_status, data = await generator_api.generate_reply(
                     chat_id=message.stream_id,
                     reply_reason=reply_reason,
                     enable_chinese_typo=False,
-                    extra_info=f"{reply_reason}。{poke_reply_prompt}",
+                    extra_info=extra_info,
                     reply_time_point=time.time(),
                 )
                 if result_status:
@@ -84,8 +103,8 @@ class PokeEventHandler(BaseEventHandler):
                         await asyncio.sleep(0.2)  # 避免消息发送过快顺序错乱
                 else:
                     logger.warn("戳一戳回复生成失败，跳过发送回复")
-            if enable_poke_back:
-                display_message = f"[戳一戳消息: {global_config.bot.nickname} 戳了戳 {person_name}]"
+            if is_poke_back:
+                display_message = f"[戳一戳消息: {global_config.bot.nickname}(你) 戳了戳 {person_name}]"
                 flag = await self.send_command(
                     message.stream_id,
                     "SEND_POKE",
@@ -165,13 +184,26 @@ class PokePlugin(BasePlugin):
         "qq_poke_plugin": {
             # 是否在被戳时进行回戳
             "enable_poke_back": ConfigField(type=bool, default=True, description="是否在被戳时进行回戳"),
+            # 回戳的概率，取值范围0~1，表示每次被戳时有多大概率进行回戳
+            "poke_back_probability": ConfigField(type=float, default=0.5,
+                                                 description="回戳的概率，取值范围0~1，1表示每次被戳时都会回戳"),
             # 是否在被戳时发送文字回复
             "enable_poke_reply": ConfigField(type=bool, default=True, description="是否在被戳时发送文字回复"),
             # 在被戳时进行文字回复的prompt
             "poke_reply_prompt": ConfigField(type=str,
                                              input_type="textarea",
-                                             default="这是QQ的“戳一戳”功能，用于友好的和某人互动。请针对这个“戳一戳”消息生成一个回复，注意不要复读你说过的话",
-                                             description="在被戳时进行文字回复的prompt"),
+                                             default="这是QQ的“戳一戳”功能，用于友好的和某人互动。请查看上下文针对这个“戳一戳”消息生成一个回复，注意不要复读你说过的话",
+                                             description="在被戳时进行文字回复的prompt。如果未启用回复，则该prompt无效"),
+            # 当决定回戳时的额外prompt
+            "poke_back_prompt": ConfigField(type=str,
+                                             input_type="textarea",
+                                             default="你决定回戳对方，回戳将会在你的回复之后进行。",
+                                             description="当决定回戳时的额外prompt。如果未启用回戳或回复，则该prompt无效"),
+            # 当决定不回戳时的额外prompt
+            "poke_no_back_prompt": ConfigField(type=str,
+                                             input_type="textarea",
+                                             default="你决定不回戳对方。",
+                                             description="当决定不回戳时的额外prompt。如果未启用回戳或回复，则该prompt无效"),
             # 戳一戳动作决策prompt
             "action_require": ConfigField(type=str,
                                           input_type="textarea",
