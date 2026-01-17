@@ -11,8 +11,8 @@
   "host_application": {
     "min_version": "0.11.0"
   },
-  "homepage_url": "https://github.com/HyperSharkawa/maibot-poke-plugin",
-  "repository_url": "https://github.com/HyperSharkawa/maibot-poke-plugin",
+  "homepage_url": "https://github.com/HyperSharkawa/poke_plugin",
+  "repository_url": "https://github.com/HyperSharkawa/poke_plugin",
   "keywords": [
     "poke",
     "interactive"
