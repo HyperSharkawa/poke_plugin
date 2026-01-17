@@ -1,7 +1,7 @@
 {
   "manifest_version": 1,
   "name": "戳一戳插件",
-  "version": "1.2.1",
+  "version": "1.2.2",
   "description": "让麦麦能主动戳别人，也能在被戳时回戳并生成自然回复",
   "author": {
     "name": "鲨鱼",

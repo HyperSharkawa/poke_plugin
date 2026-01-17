@@ -121,7 +121,10 @@ class PokeEventHandler(BaseEventHandler):
 
 class PokeAction(BaseAction):
     action_name = "poke"
-    action_description = "使用“戳一戳”功能友好的戳一下某人。这个动作不会发送消息内容，仅会有一个弱提示。"
+    action_description = (
+        "使用“戳一戳”功能友好的戳一下某人。这个动作不会发送消息内容，仅会有一个弱提示。"
+        "poke action不视为回复消息，使用该动作不影响回复频率。你可以同时使用poke和其他任何动作。"
+    )
     activation_type = ActionActivationType.ALWAYS
     parallel_action = True
     associated_types = ["command"]
@@ -135,7 +138,7 @@ class PokeAction(BaseAction):
         "当你想使用戳一戳功能和别人互动时",
         "当你想引起某人注意或提醒某人时",
         "当别人让你戳他时",
-        "注意:poke action不视为回复消息，使用该动作不影响回复频率。你可以同时使用poke和其他任何动作。",
+        "注意: poke不应该作为emoji和reply的替代，请优先使用emoji和reply。",
     ]
 
     async def execute(self) -> Tuple[bool, str]:
@@ -196,14 +199,14 @@ class PokePlugin(BasePlugin):
                                              description="在被戳时进行文字回复的prompt。如果未启用回复，则该prompt无效"),
             # 当决定回戳时的额外prompt
             "poke_back_prompt": ConfigField(type=str,
-                                             input_type="textarea",
-                                             default="你决定回戳对方，回戳将会在你的回复之后进行。",
-                                             description="当决定回戳时的额外prompt。如果未启用回戳或回复，则该prompt无效"),
+                                            input_type="textarea",
+                                            default="你决定回戳对方，回戳将会在你的回复之后进行。",
+                                            description="当决定回戳时的额外prompt。如果未启用回戳或回复，则该prompt无效"),
             # 当决定不回戳时的额外prompt
             "poke_no_back_prompt": ConfigField(type=str,
-                                             input_type="textarea",
-                                             default="你决定不回戳对方。",
-                                             description="当决定不回戳时的额外prompt。如果未启用回戳或回复，则该prompt无效"),
+                                               input_type="textarea",
+                                               default="你决定不回戳对方。",
+                                               description="当决定不回戳时的额外prompt。如果未启用回戳或回复，则该prompt无效"),
             # 戳一戳动作决策prompt
             "action_require": ConfigField(type=str,
                                           input_type="textarea",
@@ -215,7 +218,7 @@ class PokePlugin(BasePlugin):
     def get_plugin_components(self) -> List[Tuple[ComponentInfo, Type]]:
         components = []
         config = self.config.get("qq_poke_plugin", {})
-        if raw_action_require:= config.get("action_require"):
+        if raw_action_require := config.get("action_require"):
             PokeAction.action_require = raw_action_require.split("\n")
         components.append((PokeAction.get_action_info(), PokeAction))
         enable_poke_reply = config.get("enable_poke_reply")
