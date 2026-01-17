@@ -131,11 +131,11 @@ class PokeAction(BaseAction):
     }
 
     action_require = [
-        "当你想使用戳一戳功能和别人互动时可以选择使用",
-        "想表达情绪时可以选择使用",
-        "当你想引起某人注意或提醒某人时可以选择使用",
-        "当别人让你戳他时可以选择使用",
-        "注意:poke action不视为回复消息，使用该动作不影响回复频率。你可以同时使用reply和poke",
+        "想表达情绪时",
+        "当你想使用戳一戳功能和别人互动时",
+        "当你想引起某人注意或提醒某人时",
+        "当别人让你戳他时",
+        "注意:poke action不视为回复消息，使用该动作不影响回复频率。你可以同时使用poke和其他任何动作。",
     ]
 
     async def execute(self) -> Tuple[bool, str]:
@@ -213,11 +213,13 @@ class PokePlugin(BasePlugin):
     }
 
     def get_plugin_components(self) -> List[Tuple[ComponentInfo, Type]]:
-        if self.config:
-            raw_action_require: Optional[str] = self.config.get("qq_poke_plugin", {}).get("action_require")
-            if raw_action_require:
-                PokeAction.action_require = raw_action_require.split("\n")
-        return [
-            (PokeEventHandler.get_handler_info(), PokeEventHandler),
-            (PokeAction.get_action_info(), PokeAction),
-        ]
+        components = []
+        config = self.config.get("qq_poke_plugin", {})
+        if raw_action_require:= config.get("action_require"):
+            PokeAction.action_require = raw_action_require.split("\n")
+        components.append((PokeAction.get_action_info(), PokeAction))
+        enable_poke_reply = config.get("enable_poke_reply")
+        enable_poke_back = config.get("enable_poke_back")
+        if enable_poke_back or enable_poke_reply:
+            components.append((PokeEventHandler.get_handler_info(), PokeEventHandler))
+        return components
