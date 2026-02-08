@@ -159,20 +159,28 @@ class PokeEventHandler(BaseEventHandler):
         if not person_name:
             return False, True, "响应戳一戳失败: 无法获取用户名称", None, None
 
-        is_poke_back = False
         poke_back_prompt = ""
         if enable_poke_back:
             poke_back_probability = self.get_config("qq_poke_plugin.poke_back_probability", 1.0)
-            if poke_back_probability >= 1.0:
-                is_poke_back = True
-            else:
-                is_poke_back = random.random() < poke_back_probability
-            if is_poke_back:
+            if poke_back_probability < 1.0 and random.random() > poke_back_probability:
+                enable_poke_back = False
+            if enable_poke_back:
                 poke_back_prompt = self.get_config("qq_poke_plugin.poke_back_prompt", "")
                 logger.info(f"决定回戳 {person_name} (概率设定: {poke_back_probability})")
             else:
                 poke_back_prompt = self.get_config("qq_poke_plugin.poke_no_back_prompt", "")
                 logger.info(f"决定不回戳 {person_name} (概率设定: {poke_back_probability})")
+
+        if enable_poke_reply:
+            poke_reply_probability = self.get_config("qq_poke_plugin.poke_reply_probability", 1.0)
+            # 决定是否回复戳一戳 若即将被屏蔽则不进行概率判断，确保回复最后一次戳一戳
+            if will_block_after and poke_reply_probability > 0.0:
+                logger.info(f"用户 {person_name} 即将被屏蔽戳一戳响应，强制回复本次戳一戳消息")
+            elif poke_reply_probability < 1.0 and random.random() > poke_reply_probability:
+                logger.info(f"决定不回复 {person_name} 的戳一戳消息 (概率设定: {poke_reply_probability})")
+                enable_poke_reply = False
+
+
         # 使用表达器生成回复
         try:
             reply_reason = f"{person_name}{message.plain_text}。"
@@ -205,7 +213,7 @@ class PokeEventHandler(BaseEventHandler):
                         await asyncio.sleep(0.2)  # 避免消息发送过快顺序错乱
                 else:
                     logger.warn("戳一戳回复生成失败，跳过发送回复")
-            if is_poke_back:
+            if enable_poke_back:
                 display_message = f"[戳一戳消息: {global_config.bot.nickname}(你) 戳了戳 {person_name}]"
                 flag = await self.send_command(
                     message.stream_id,

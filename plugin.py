@@ -37,6 +37,9 @@ class PokePlugin(BasePlugin):
             # 回戳的概率，取值范围0~1，表示每次被戳时有多大概率进行回戳
             "poke_back_probability": ConfigField(type=float, default=0.5,
                                                  description="回戳的概率，取值范围0~1，1表示每次被戳时都会回戳"),
+            # 文字回复的概率，取值范围0~1，表示每次被戳时有多大概率发送文字回复
+            "poke_reply_probability": ConfigField(type=float, default=0.8,
+                                                  description="文字回复的概率，取值范围0~1，1表示每次被戳时都会发送文字回复"),
             # 在被戳时进行文字回复的prompt
             "poke_reply_prompt": ConfigField(type=str,
                                              input_type="textarea",

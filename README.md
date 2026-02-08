@@ -16,8 +16,9 @@ MaiBot 的「戳一戳」增强插件，让麦麦能主动戳别人，也能在�
 | 字段 | 类型 | 默认值 | 说明 |
 | --- | --- | --- | --- |
 | `enable_poke_back` | bool | `true` | 是否在被戳后自动回戳对方 |
-| `poke_back_probability` | float | `0.5` | 回戳的概率（0~1），1表示每次必回戳 |
 | `enable_poke_reply` | bool | `true` | 是否在被戳后发送文字回复 |
+| `poke_back_probability` | float | `0.5` | 回戳的概率（0~1），1表示每次必回戳 |
+| `poke_reply_probability` | float | `0.8` | 文字回复的概率（0~1），1表示每次必回复 |
 | `poke_reply_prompt` | str | 详见源码 | 在被戳时进行文字回复的提示词 |
 | `poke_back_prompt` | str | 详见源码 | 当决定回戳时的额外提示词 |
 | `poke_no_back_prompt` | str | 详见源码 | 当决定不回戳时的额外提示词 |
